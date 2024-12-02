@@ -1,0 +1,6 @@
+# IDEA
+.idea/
+
+# VALE
+.vale.ini
+.vale-styles/

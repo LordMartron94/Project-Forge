@@ -32,7 +32,7 @@ git commit -m "Removed submodule $submodulePath"
 Remove-Item -Path $submodulePath -Recurse -Force
 
 # 6. Remove the submodule's .git directory
-$submoduleGitDir = Join-Path -Path (Get-Location) -ChildPath ".git/modules/$submodulePath"
+$submoduleGitDir = Join-Path -Path (Get-Location) -ChildPath ".git/modules/$submoduleName"
 if (Test-Path $submoduleGitDir) {
     Remove-Item -Path $submoduleGitDir -Recurse -Force
 }
