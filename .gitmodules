@@ -1,4 +1,5 @@
+
 [submodule "common"]
-	path = D:/10 Work/Programming/00 Current Projects/Project Forge/project-forge/tools
+	path = D:/10 Work/Programming/00 Current Projects/Project Forge/project-forge/common
 	url = https://github.com/LordMartron94/py-common
 	branch = main
