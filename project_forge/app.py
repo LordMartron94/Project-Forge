@@ -147,6 +147,7 @@ class App:
 				command = [
 					"powershell.exe",
 					"-File", add_submodule_script,
+					"-targetRepoPath", project_path,
 					"-submoduleName", name,
 					"-submodulePath", path,
 					"-submoduleUrl", url

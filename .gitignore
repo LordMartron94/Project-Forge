@@ -4,3 +4,6 @@
 # VALE
 .vale.ini
 .vale-styles/
+
+# Python Cache
+__pycache__/

@@ -1,8 +1,15 @@
 param(
+    [string]$targetRepoPath,
     [string]$submodulePath,
     [string]$submoduleUrl,
     [string]$submoduleName
 )
+
+# Check if the target repository path is provided
+if (-not $targetRepoPath) {
+    Write-Error "Please provide the path to the target repository using the -targetRepoPath parameter."
+    exit 1
+}
 
 # Check if the submodule path and URL are provided
 if (-not $submodulePath) {
@@ -19,6 +26,8 @@ if (-not $submoduleName) {
     $submoduleName = $submodulePath
 }
 
+Push-Location $targetRepoPath
+
 # 1. Add the submodule
 git submodule add -b main --name $submoduleName $submoduleUrl $submodulePath
 
@@ -30,5 +39,7 @@ git add .gitmodules $submodulePath
 
 # 4. Commit the changes
 git commit -m "Added submodule $submoduleName"
+
+Pop-Location
 
 Write-Host "Submodule '$submoduleName' added successfully at '$submodulePath'."
