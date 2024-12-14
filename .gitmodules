@@ -2,7 +2,3 @@
 	path = project_forge/common
 	url = https://github.com/LordMartron94/py-common
 	branch = main
-[submodule "cli_bench"]
-	path = project_forge/cli_bench
-	url = https://github.com/LordMartron94/CLI-Bench
-	branch = main
