@@ -11,7 +11,7 @@ if ([string]::IsNullOrEmpty($venvPath) -or [string]::IsNullOrEmpty($projectName)
 
 & "$venvPath\$projectName\Scripts\activate.ps1"
 
-$requirementsPath = "../requirements.txt"
+$requirementsPath = "./requirements.txt"
 Write-Host $requirementsPath
 
 pip install -r $requirementsPath

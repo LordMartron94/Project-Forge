@@ -11,5 +11,9 @@ SUPPORTED_LANGUAGES = [
 	{
 		"name": "C#",
 		"template_folder": "csharp"
+	},
+	{
+		"name": "Python",
+		"template_folder": "python"
 	}
 ]

@@ -12,6 +12,8 @@ from project_forge.constants import SUPPORTED_LANGUAGES, PROJECT_ROOT, SCRIPTS_D
 from project_forge.model.config_model import ConfigModel
 
 
+# TODO - Refactor for Maintainability and Readability
+
 class App:
 	def __init__(self, logger: HoornLogger, configuration: ConfigModel):
 		self._logger: HoornLogger = logger
@@ -90,13 +92,8 @@ class App:
 		shutil.copytree(src=SCRIPTS_DIR, dst=destination)
 		self._logger.debug("Utility scripts copied successfully.", separator="APP")
 
-	def _initialize_repo_structure(self, project_path: Path):
+	def _initialize_repo_structure(self, project_path: Path, root_project_name: str, multi_language: bool):
 		self._logger.debug(f"Initializing project structure in: {project_path}", separator="APP")
-
-		root_project_name = project_path.name
-		root_project_name = root_project_name.replace(" ", "_")
-		root_project_name = root_project_name.replace("-", "_")
-		root_project_name = root_project_name.lower()
 		root_project_path = project_path.joinpath(root_project_name)
 
 		project_path.joinpath("build").mkdir(parents=True, exist_ok=True)
@@ -107,6 +104,17 @@ class App:
 
 		for folder in folders_to_create:
 			root_project_path.joinpath(folder).mkdir(parents=True, exist_ok=True)
+
+		if multi_language:
+			with open(root_project_path.joinpath("requirements.txt"), "w") as requirements_file:
+				requirements_file.write(f"""
+-r {root_project_name}/components/MD.Logging/requirements.txt
+				""")
+			with open(project_path.joinpath("launch_config.json"), "w") as launch_config_file:
+				default_contents = PROJECT_ROOT.joinpath("_internal/default_launcher_config.json").read_text()
+				launch_config_file.write(default_contents)
+			with open(project_path.joinpath("todo.txt"), "w") as todo_file:
+				todo_file.write("Delete this file when you have executed the following: create a symlink between the venv folder and your project root folder.\n\nThis way, the launcher script will work correctly.")
 
 		self._logger.debug("Project structure initialized successfully.", separator="APP")
 
@@ -128,8 +136,7 @@ class App:
 
 		self._logger.debug("Combined gitignore created successfully.", separator="APP")
 
-	def _add_submodules(self, project_path: Path, chosen_templates: List[Path]):
-		# Initialize .gitmodules file
+	def _add_submodules(self, project_path: Path, chosen_templates: List[Path], submodule_root_name: str, multi_language: bool):
 		project_path.joinpath(".gitmodules").touch()
 		add_submodule_script = SCRIPTS_DIR.joinpath("add_submodule.ps1").resolve()
 
@@ -139,9 +146,16 @@ class App:
 				self._logger.info(f"Submodules file not found at: {submodule_path} - Skipping", separator="APP")
 				continue
 			submodules = json.load(open(submodule_path))
+
+			if multi_language:
+				submodule_multi_path = template_folder.joinpath("submodules_multi.json")
+				if submodule_multi_path.is_file():
+					submodule_multi = json.load(open(submodule_multi_path))
+					submodules.extend(submodule_multi)
+
 			for submodule in submodules:
 				name = submodule["name"]
-				path = submodule["relative_path"]
+				path = submodule_root_name + submodule["relative_path"]
 				url = submodule["url"]
 
 				command = [
@@ -158,19 +172,39 @@ class App:
 				if result.returncode != 0:
 					self._logger.error(f"Failed to add submodule: {name} - {result.stderr}", separator="APP.AddModules")
 
+	def _create_launch_script(self, project_root: Path, project_root_name: str):
+		with open(project_root.joinpath("launch.ps1"), "w") as launch_script:
+			launch_script.write(f"""./venv/Scripts/activate.ps1
+
+# Get the current working directory
+$originalDir = Get-Location
+$newDir = Join-Path -Path $originalDir -ChildPath "{project_root_name}" -AdditionalChildPath ("components", "MD.Launcher")
+
+# Add the project's root directory to PYTHONPATH
+$env:PYTHONPATH = "$newDir" + ";" + $env:PYTHONPATH
+
+py "./{project_root.joinpath(project_root_name, "components", "MD.Launcher", "md_launcher", "components", "launcher", "launch.py").relative_to(project_root)}" "./launch_config.json"
+""")
 
 	def _initialize_project(self):
 		project_path: Path = self._get_desired_project_from_user()
+		root_project_name = project_path.name
+		root_project_name = root_project_name.replace(" ", "_")
+		root_project_name = root_project_name.replace("-", "_")
+		root_project_name = root_project_name.lower()
+
 		languages: List[str] = self._get_desired_languages_from_user()
 		template_folders: List[Path] = self._get_template_folders(languages)
+		multi_language = len(languages) > 1
 
-		# if len(languages) > 1:
-		# 	self._copy_router_binary(project_path)
+		self._copy_utility_scripts(project_path)
+		self._create_combined_gitignore(project_path, template_folders)
+		self._initialize_repo_structure(project_path, root_project_name, multi_language)
+		self._add_submodules(project_path, template_folders, root_project_name + "/components/", multi_language)
 
-		# self._copy_utility_scripts(project_path)
-		# self._create_combined_gitignore(project_path, template_folders)
-		# self._initialize_repo_structure(project_path)
-		self._add_submodules(project_path, template_folders)
+		if multi_language:
+			self._copy_router_binary(project_path)
+			self._create_launch_script(project_path, root_project_name)
 
 		self._logger.info(f"Project initialized successfully in: {project_path}", separator="APP")
 

@@ -9,3 +9,7 @@
 
 # Draw.io
 *.bkp
+
+# Environments
+.env
+venv
