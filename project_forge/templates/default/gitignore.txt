@@ -1,0 +1,15 @@
+# ======= DEFAULT =======
+
+# Personal
+.vale-styles
+.vale.ini
+
+# IDEA
+.idea
+
+# Draw.io
+*.bkp
+
+# Environments
+.env
+venv

@@ -1,0 +1,16 @@
+{
+  "project_name": "",
+  "sanitized_project_name": "",
+  "debug_mode": true,
+  "components_launch_in_background": false,
+  "components": [
+    {
+      "file_path": "${sanitized_project_name}/components/MD.Logging/cba_logger/components/logger.py",
+      "args": [
+        "${project_name}",
+        "-max_separator_length=50"
+      ],
+      "type": "Python"
+    }
+  ]
+}

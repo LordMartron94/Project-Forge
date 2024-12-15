@@ -1,0 +1,4 @@
+[submodule "common"]
+	path = project_forge/common
+	url = https://github.com/LordMartron94/py-common
+	branch = main
