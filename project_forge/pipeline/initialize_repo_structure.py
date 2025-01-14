@@ -22,7 +22,7 @@ class InitializeRepoStructure(IPipe):
         if data.multi_language:
             with open(data.root_project_path.joinpath("requirements.txt"), "w") as requirements_file:
                 requirements_file.write(f"""
--r {data.project_root_name}/components/MD.Logging/requirements.txt
+-r components/MD.Logging/requirements.txt
 				""")
             with open(data.project_path.joinpath("launch_config.json"), "w") as launch_config_file:
                 default_contents = PROJECT_ROOT.joinpath("_internal/default_launcher_config.json").read_text()
