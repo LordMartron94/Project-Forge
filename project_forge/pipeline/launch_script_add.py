@@ -15,15 +15,15 @@ class AddLaunchScript(IPipe):
         with open(launch_script_path, "w") as launch_script:
             launch_script.write(f"""./venv/Scripts/activate.ps1
     
-    # Get the current working directory
-    $originalDir = Get-Location
-    $newDir = Join-Path -Path $originalDir -ChildPath "{data.project_root_name}" -AdditionalChildPath ("components", "MD.Launcher")
-    
-    # Add the project's root directory to PYTHONPATH
-    $env:PYTHONPATH = "$newDir" + ";" + $env:PYTHONPATH
-    
-    py "./{data.project_path.joinpath(data.project_root_name, "components", "MD.Launcher", "md_launcher", "components", "launcher", "launch.py").relative_to(data.project_path)}" "./launch_config.json"
-    """)
+# Get the current working directory
+$originalDir = Get-Location
+$newDir = Join-Path -Path $originalDir -ChildPath "{data.project_root_name}" -AdditionalChildPath ("components", "MD.Launcher")
+
+# Add the project's root directory to PYTHONPATH
+$env:PYTHONPATH = "$newDir" + ";" + $env:PYTHONPATH
+
+py "./{data.project_path.joinpath(data.project_root_name, "components", "MD.Launcher", "md_launcher", "components", "launcher", "launch.py").relative_to(data.project_path)}" "./launch_config.json"
+""")
 
         self._logger.trace("Launch script added successfully")
         return data
