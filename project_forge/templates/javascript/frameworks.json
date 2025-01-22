@@ -1,0 +1,6 @@
+[
+  {
+    "name": "Node",
+    "copy_to_root": "template/package.json"
+  }
+]

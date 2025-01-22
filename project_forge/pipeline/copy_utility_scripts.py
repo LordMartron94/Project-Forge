@@ -11,10 +11,10 @@ class CopyUtilityScripts(IPipe):
         self._logger = logger
 
     def flow(self, data: PipelineContext) -> PipelineContext:
-        destination = data.project_path.joinpath("scripts")
+        destination = data.repo_path.joinpath("scripts")
         destination.parent.mkdir(parents=True, exist_ok=True)
 
-        self._logger.trace(f"Copying utility scripts to: {data.project_path}", separator="APP")
+        self._logger.trace(f"Copying utility scripts to: {data.repo_path}", separator="APP")
         shutil.copytree(src=SCRIPTS_DIR, dst=destination)
         self._logger.debug("Utility scripts copied successfully.", separator="APP")
         return data

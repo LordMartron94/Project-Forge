@@ -15,7 +15,7 @@ class AddSubmodules(IPipe):
 
     def flow(self, data: PipelineContext) -> PipelineContext:
         self._logger.trace("Flowing pipe for submodule add.")
-        self._initialize_gitmodules_file(data.project_path)
+        self._initialize_gitmodules_file(data.repo_path)
 
         submodules: List[Dict] = []
 
@@ -24,7 +24,7 @@ class AddSubmodules(IPipe):
             if data.multi_language:
                 submodules.extend(self._retrieve_multi_submodules_for_template(template))
 
-        self._initialize_submodules(submodules, data.submodule_root_name, data.project_path)
+        self._initialize_submodules(submodules, data.submodule_root_name, data.repo_path)
         self._logger.trace("Done flowing pipe for submodule add.")
 
         return data

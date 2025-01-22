@@ -10,9 +10,9 @@ class GitIgnoreAdd(IPipe):
         self._logger = logger
 
     def flow(self, data: PipelineContext) -> PipelineContext:
-        self._logger.debug(f"Creating combined gitignore in: {data.project_path}", separator="APP")
+        self._logger.debug(f"Creating combined gitignore in: {data.repo_path}", separator="APP")
 
-        gitignore_path: Path = data.project_path.joinpath(".gitignore")
+        gitignore_path: Path = data.repo_path.joinpath(".gitignore")
 
         with open(gitignore_path, "w") as gitignore_file:
             for template_folder in data.included_templates:

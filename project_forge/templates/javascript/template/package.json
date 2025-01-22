@@ -1,0 +1,20 @@
+{
+  "name": "${ROOT_FOLDER_NAME}",
+  "version": "0.0.0",
+  "description": "",
+  "main": "${SANITIZED_NAME}/components/${SANITIZED_NAME}/main.js",
+  "scripts": {
+    "run": "node .",
+    "test": "node ${SANITIZED_NAME}/tests/test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+${GIT_URL}.git"
+  },
+  "author": "Mr. Hoorn",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "${GIT_URL}/issues"
+  },
+  "homepage": "${GIT_URL}#readme"
+}

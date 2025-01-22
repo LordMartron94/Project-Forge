@@ -85,16 +85,23 @@ class App:
 		template_folders: List[Path] = self._get_template_folders(languages)
 		multi_language = len(languages) > 1
 
+		def __always_true(_: str):
+			return True, ""
+
+		git_url: str = self._user_input_handler.get_user_input("What is the URL of the git repository?", expected_response_type=str, validator_func=__always_true)
+
 		context: PipelineContext = PipelineContext(
-			project_path=project_path,
-			root_project_path=project_path.joinpath(root_project_name),
+			repo_path=project_path,
+			project_path=project_path.joinpath(root_project_name),
 			included_templates=template_folders,
 			submodule_root_name=root_project_name + "/components/",
-			project_root_name=root_project_name,
+			project_root_name=project_path.name,
+			project_root_name_sanitized=root_project_name,
 			multi_language=multi_language,
+			git_url=git_url
 		)
 
-		pipeline: ForgePipeline = ForgePipeline(self._logger, self._configuration, multi_language)
+		pipeline: ForgePipeline = ForgePipeline(self._logger, self._user_input_handler, self._configuration, multi_language)
 		pipeline.build_pipeline()
 		pipeline.flow(context)
 

@@ -16,7 +16,7 @@ class CopyRouterBinary(IPipe):
 
         self._logger.trace(f"Copying router binary from: {latest_binary}", separator="APP")
 
-        destination_binary = data.project_path.joinpath("router").joinpath("router.exe")
+        destination_binary = data.repo_path.joinpath("router").joinpath("router.exe")
         destination_binary.parent.mkdir(parents=True, exist_ok=True)
 
         shutil.copyfile(src=latest_binary, dst=destination_binary)
