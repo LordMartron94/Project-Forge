@@ -15,5 +15,9 @@ SUPPORTED_LANGUAGES = [
 	{
 		"name": "Python",
 		"template_folder": "python"
+	},
+	{
+		"name": "Javascript",
+		"template_folder": "javascript"
 	}
 ]
