@@ -24,6 +24,8 @@ class AddSubmodules(IPipe):
             if data.multi_language:
                 submodules.extend(self._retrieve_multi_submodules_for_template(template))
 
+        submodules.extend(data.extra_submodules)
+
         self._initialize_submodules(submodules, data.submodule_root_name, data.repo_path)
         self._logger.trace("Done flowing pipe for submodule add.")
 

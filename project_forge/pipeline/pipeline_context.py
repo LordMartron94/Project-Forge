@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List
+from typing import List, Dict
 
 from pydantic import BaseModel
 
@@ -13,3 +13,4 @@ class PipelineContext(BaseModel):
     submodule_root_name: str
     multi_language: bool
     git_url: str
+    extra_submodules: List[Dict] = []

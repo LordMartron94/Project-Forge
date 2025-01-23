@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from re import template
 from typing import Dict, List
 
 from project_forge.common.py_common.logging import HoornLogger
@@ -24,7 +25,7 @@ class InitializeFrameworks(IPipe):
             "${GIT_URL}": data.git_url
         }
 
-        copy_to_root: List[Path] = []
+        copy_to_root: Dict[str, Path] = {}
 
         for template in data.included_templates:
             framework_path = template.joinpath("frameworks.json")
@@ -38,9 +39,12 @@ class InitializeFrameworks(IPipe):
                     options.append(framework)
 
             chosen_options = self._get_desired_frameworks_from_user(options)
-            copy_to_root.extend(template.joinpath(option["copy_to_root"]) for option in chosen_options)
+            for option in chosen_options:
+                copy_to_root[option["rename"]] = template.joinpath(option["copy_to_root"])
+                submodules: List[Dict] = option["submodules"]
+                data.extra_submodules.extend(submodules)
 
-        for copy_to_root_file in copy_to_root:
+        for name, copy_to_root_file in copy_to_root.items():
             if copy_to_root_file.name.endswith(".json"):
                 with open(copy_to_root_file, "r") as f:
                     old_content: str = f.read()
@@ -49,7 +53,7 @@ class InitializeFrameworks(IPipe):
                     for key, value in keyword_mapping.items():
                         new_content = new_content.replace(key, value)
 
-                    with open(data.repo_path.joinpath(copy_to_root_file.name), "w") as f2:
+                    with open(data.repo_path.joinpath(name), "w") as f2:
                         f2.write(new_content)
 
         self._logger.trace("Done flowing pipe for framework add.")

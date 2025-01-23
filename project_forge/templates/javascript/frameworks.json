@@ -1,6 +1,19 @@
 [
   {
     "name": "Node",
-    "copy_to_root": "template/package.json"
+    "copy_to_root": "template/package-node.json",
+    "rename": "package.json"
+  },
+  {
+    "name": "Electron",
+    "copy_to_root": "template/package-electron.json",
+    "rename": "package.json",
+    "submodules": [
+      {
+        "name": "MD.Electron-Starter",
+        "relative_path": "MD.Electron-Starter",
+        "url": "https://github.com/LordMartron94/Electron-Starter"
+      }
+    ]
   }
 ]
