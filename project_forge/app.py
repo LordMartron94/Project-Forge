@@ -79,6 +79,7 @@ class App:
 		root_project_name = project_path.name
 		root_project_name = root_project_name.replace(" ", "_")
 		root_project_name = root_project_name.replace("-", "_")
+		root_project_name = root_project_name.replace(".", "_")
 		root_project_name = root_project_name.lower()
 
 		languages: List[str] = self._get_desired_languages_from_user()
