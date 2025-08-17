@@ -56,6 +56,12 @@ class InitializeRepoStructure(IPipe):
             "${CMAKE_CURRENT_SOURCE_DIR}": "${CMAKE_CURRENT_SOURCE_DIR}",
             "${CMAKE_CURRENT_BINARY_DIR}": "${CMAKE_CURRENT_BINARY_DIR}",
             "${CMAKE_CURRENT_LIST_DIR}": "${CMAKE_CURRENT_LIST_DIR}",
+            "${CMAKE_INSTALL_INCLUDEDIR}": "${CMAKE_INSTALL_INCLUDEDIR}",
+            "${CMAKE_INSTALL_LIBDIR}": "${CMAKE_INSTALL_LIBDIR}",
+            "${CMAKE_INSTALL_BINDIR}": "${CMAKE_INSTALL_BINDIR}",
+            "${sourceDir}": "${sourceDir}",
+            "${presetName}": "${presetName}",
+            "${LLVM_HOME}": "${LLVM_HOME}"
         }
 
     def _replace_variables(self, input_string: str) -> str:

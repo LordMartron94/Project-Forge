@@ -1,5 +1,5 @@
-#ifndef ${PROJECT_NAME_UPPER}_${PROJECT_NAME_UPPER}_H
-#define ${PROJECT_NAME_UPPER}_${PROJECT_NAME_UPPER}_H
+#ifndef ${PROJECT_NAME_UPPER}_H
+#define ${PROJECT_NAME_UPPER}_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,4 +24,4 @@ const char* ${PROJECT_NAME}_version_string(void);
 }
 #endif
 
-#endif /* ${PROJECT_NAME_UPPER}_${PROJECT_NAME_UPPER}_H */
+#endif /* ${PROJECT_NAME_UPPER}_H */

@@ -5,7 +5,8 @@
     "include/${PROJECT_NAME}",
     "tests",
     "cmake",
-    "build"
+    "build",
+    "toolchains"
   ],
   "files": [
     { "source": "template/CMakeLists.txt",                   "destination": "CMakeLists.txt" },
@@ -15,6 +16,8 @@
     { "source": "template/tests_entry.c",                    "destination": "tests/entry.c" },
     { "source": "template/cmake_package_config.in",          "destination": "cmake/${PROJECT_NAME}-config.cmake.in" },
     { "source": "template/cmake_package_config_version.in",  "destination": "cmake/${PROJECT_NAME}-config-version.cmake.in" },
-    { "source": "template/README.md",                        "destination": "README.md" }
+    { "source": "template/README.md",                        "destination": "README.md" },
+    { "source": "template/clangcl-llvm.cmake",               "destination": "toolchains/clangcl-llvm.cmake" },
+    { "source": "template/CMakePresets.json",                "destination": "CMakePresets.json" }
   ]
 }
