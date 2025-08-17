@@ -17,23 +17,24 @@ option(${PROJECT_NAME}_BUILD_APP   "Build demo console app (src/main.c)" ON)
 option(${PROJECT_NAME}_BUILD_TESTS "Build tests in /tests"               ON)
 option(BUILD_SHARED_LIBS           "Build shared instead of static"      OFF)
 
-# Use canonical install dirs (handles lib vs lib64, etc.)
 include(GNUInstallDirs)
 
-# ---- Library ----
-add_library(${PROJECT_NAME}
-  src/${PROJECT_NAME}.c
+# ---- Sources (recursively, exclude app entry from the lib) ----
+file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES CONFIGURE_DEPENDS
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
 )
+list(FILTER ${PROJECT_NAME}_SOURCES EXCLUDE REGEX "/main\\.c$")
+
+# ---- Library ----
+add_library(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES})
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
-# Position-independent code (useful if the static lib is later linked into a shared lib)
 set_target_properties(${PROJECT_NAME} PROPERTIES
   POSITION_INDEPENDENT_CODE ON
   VERSION   ${PROJECT_VERSION}
   SOVERSION ${PROJECT_VERSION_MAJOR}
 )
 
-# Public headers for build-tree and install-tree consumers
 target_include_directories(${PROJECT_NAME}
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -96,7 +97,6 @@ install(EXPORT ${PROJECT_NAME}Targets
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
-# Support build-tree find_package when using add_subdirectory in a superproject
 export(EXPORT ${PROJECT_NAME}Targets
   NAMESPACE ${PROJECT_NAME}::
   FILE ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake
