@@ -13,11 +13,11 @@ from project_forge.pipeline.submodule_add import AddSubmodules
 
 class ForgePipeline(AbPipeline):
     def __init__(self, logger: HoornLogger, user_input_handler: UserInputHelper, configuration: ConfigModel, multi_language: bool):
+        super().__init__(logger)
         self._logger = logger
         self._user_input_handler = user_input_handler
         self._configuration = configuration
         self._multi_language = multi_language
-        super().__init__()
 
     def build_pipeline(self):
         self._add_step(CopyUtilityScripts(self._logger))

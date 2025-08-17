@@ -1,6 +1,5 @@
 import json
 from pathlib import Path
-from re import template
 from typing import Dict, List
 
 from project_forge.common.py_common.logging import HoornLogger
@@ -16,6 +15,7 @@ class InitializeFrameworks(IPipe):
         self._logger = logger
         self._user_input_handler = user_input_handler
 
+    # noinspection t
     def flow(self, data: PipelineContext) -> PipelineContext:
         self._logger.trace("Flowing pipe for framework add.")
 

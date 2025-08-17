@@ -1,17 +1,15 @@
-import json
-import shutil
-import subprocess
 from pathlib import Path
 from typing import List
 
-from common.py_common.logging import HoornLogger
 from common.py_common.cli_framework import CommandLineInterface
+from common.py_common.logging import HoornLogger
 from project_forge.common.py_common.handlers import FileHandler
 from project_forge.common.py_common.user_input.user_input_helper import UserInputHelper
 from project_forge.constants import SUPPORTED_LANGUAGES, PROJECT_ROOT
 from project_forge.model.config_model import ConfigModel
 from project_forge.pipeline.forge_pipeline import ForgePipeline
 from project_forge.pipeline.pipeline_context import PipelineContext
+
 
 class App:
 	def __init__(self, logger: HoornLogger, configuration: ConfigModel):
@@ -24,63 +22,96 @@ class App:
 		self._initialize_commands()
 
 	def _initialize_commands(self):
-		self._cli.add_command(["initialize-project", "ip"], description="Initialize a project with the correct structure.", action=self._initialize_project)
+		self._cli.add_command(
+			["initialize-project", "ip"],
+			description="Initialize a project with the correct structure.",
+			action=self._initialize_project
+		)
 
 	def _get_project_paths(self) -> List[Path]:
 		return self._file_handler.get_children_directories(self._configuration.project_dir)
 
 	def _get_desired_project_from_user(self):
 		paths = self._get_project_paths()
-
 		paths.sort(key=lambda x: x.name.lower())
 		possible_projects = [path.name for path in paths]
 
 		def __validate_input(input_value: int) -> [bool, str]:
-			valid: bool = 1 <= input_value <= len(possible_projects)
+			is_valid: bool = 1 <= input_value <= len(possible_projects)
+			error_msg = f"Please enter a number between 1 and {len(possible_projects)}."
+			return (is_valid, "") if is_valid else (False, error_msg)
 
-			if not valid:
-				return False, "Please enter a number between 1 and " + str(len(possible_projects))
-			else: return True, ""
-
+		print("Please select a project to initialize:")
 		for i, project in enumerate(possible_projects):
-			print(f"{i+1}) {project}")
+			print(f"  {i+1}) {project}")
 
-		choice = self._user_input_handler.get_user_input("Enter the number of the project you want to initialize (1-" + str(len(possible_projects)) + "):", expected_response_type=int, validator_func=__validate_input)
-		return paths[choice-1]
+		prompt = f"\nEnter the number of the project (1-{len(possible_projects)}):"
+		choice = self._user_input_handler.get_user_input(
+			prompt,
+			expected_response_type=int,
+			validator_func=__validate_input
+		)
+		return paths[choice - 1]
 
+	# noinspection t
 	def _get_desired_languages_from_user(self) -> List[str]:
-		supported_languages = [language["name"] for language in SUPPORTED_LANGUAGES]
-		templates = [language["template_folder"] for language in SUPPORTED_LANGUAGES]
+		"""
+		Presents a formatted, grouped list of languages to the user and returns their selections.
+		"""
+		all_languages = [
+			lang for group in SUPPORTED_LANGUAGES
+			for lang in group.get('languages', [])
+		]
+		total_languages = len(all_languages)
 
 		def __validate_input(input_value: str) -> [bool, str]:
-			choices: List[int] = [int(num) for num in input_value.split()]
+			if not input_value.strip():
+				return False, "Input cannot be empty. Please enter numbers separated by spaces."
+			try:
+				choices: List[int] = [int(num) for num in input_value.split()]
+			except ValueError:
+				return False, "Invalid input. Please enter only numbers separated by spaces."
 
-			valid: bool = all(1 <= choice <= len(supported_languages) for choice in choices)
+			is_valid: bool = all(1 <= choice <= total_languages for choice in choices)
+			error_msg = f"Please ensure all numbers are between 1 and {total_languages}."
+			return (is_valid, "") if is_valid else (False, error_msg)
 
-			if not valid:
-				return False, "Please enter a number between 1 and " + str(len(supported_languages)) + " separated by spaces."
+		# --- Display Logic ---
+		print("Select the programming languages you want to include:")
+		counter = 1
+		for group in SUPPORTED_LANGUAGES:
+			# Only display groups that contain languages
+			if group.get('languages'):
+				print(f"\n--- {group['group_name']} ---")
+				print(f"    {group['description']}")
+				for language in group['languages']:
+					print(f"  {counter}) {language['name']}")
+					counter += 1
 
-			return True, ""
+		# --- Input and Processing Logic ---
+		prompt = f"\nEnter the numbers of the languages (1-{total_languages}), separated by spaces:"
+		choice_str = self._user_input_handler.get_user_input(
+			prompt,
+			expected_response_type=str,
+			validator_func=__validate_input
+		)
 
-		for i, language in enumerate(supported_languages):
-			print(f"{i+1}) {language}")
+		# Convert 1-based user input to 0-based indices and retrieve template folders
+		chosen_indices = [int(num) - 1 for num in choice_str.split()]
+		return [all_languages[i]['template_folder'] for i in chosen_indices]
 
-		choice = self._user_input_handler.get_user_input("Enter the numbers of the programming languages you want to include (separated by spaces):", expected_response_type=str, validator_func=__validate_input)
-		return [templates[choice-1] for choice in [int(num) for num in choice.split()]]
 
 	def _get_template_folders(self, languages: List[str]) -> List[Path]:
 		root_template_dir = PROJECT_ROOT.joinpath("templates")
-
-		return [root_template_dir.joinpath("default")] + [root_template_dir.joinpath(language) for language in languages]
-
+		default_template = root_template_dir.joinpath("default")
+		language_templates = [root_template_dir.joinpath(lang) for lang in languages]
+		return [default_template] + language_templates
 
 	def _initialize_project(self):
 		project_path: Path = self._get_desired_project_from_user()
-		root_project_name = project_path.name
-		root_project_name = root_project_name.replace(" ", "_")
-		root_project_name = root_project_name.replace("-", "_")
-		root_project_name = root_project_name.replace(".", "_")
-		root_project_name = root_project_name.lower()
+
+		# Sanitize project name for use in file names, etc.
+		sanitized_name = project_path.name.replace(" ", "_").replace("-", "_").replace(".", "_").lower()
 
 		languages: List[str] = self._get_desired_languages_from_user()
 		template_folders: List[Path] = self._get_template_folders(languages)
@@ -89,20 +120,30 @@ class App:
 		def __always_true(_: str):
 			return True, ""
 
-		git_url: str = self._user_input_handler.get_user_input("What is the URL of the git repository?", expected_response_type=str, validator_func=__always_true)
+		git_url: str = self._user_input_handler.get_user_input(
+			"What is the URL of the git repository?",
+			expected_response_type=str,
+			validator_func=__always_true
+		)
 
 		context: PipelineContext = PipelineContext(
 			repo_path=project_path,
-			project_path=project_path.joinpath(root_project_name),
+			project_path=project_path.joinpath(sanitized_name),
 			included_templates=template_folders,
-			submodule_root_name=root_project_name + "/components/",
+			submodule_root_name=f"{sanitized_name}/components/",
 			project_root_name=project_path.name,
-			project_root_name_sanitized=root_project_name,
+			project_root_name_sanitized=sanitized_name,
 			multi_language=multi_language,
-			git_url=git_url
+			git_url=git_url,
+			project_version="0.0.0"
 		)
 
-		pipeline: ForgePipeline = ForgePipeline(self._logger, self._user_input_handler, self._configuration, multi_language)
+		pipeline: ForgePipeline = ForgePipeline(
+			self._logger,
+			self._user_input_handler,
+			self._configuration,
+			multi_language
+		)
 		pipeline.build_pipeline()
 		pipeline.flow(context)
 
@@ -110,4 +151,3 @@ class App:
 
 	def run(self):
 		self._cli.start_listen_loop()
-

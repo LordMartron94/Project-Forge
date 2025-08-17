@@ -14,3 +14,4 @@ class PipelineContext(BaseModel):
     multi_language: bool
     git_url: str
     extra_submodules: List[Dict] = []
+    project_version: str

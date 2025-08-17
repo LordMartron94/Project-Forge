@@ -3,28 +3,11 @@ import os
 import shutil
 from pathlib import Path
 
-from common.py_common.logging import HoornLogger, LogType
 from app import App
-from project_forge.common.py_common.logging import DefaultHoornLogOutput, FileHoornLogOutput
+from common.py_common.logging import HoornLogger
+from project_forge.common.py_common.logging import HoornLoggerBuilder, LogType
 from project_forge.constants import PROJECT_ROOT
 from project_forge.model.config_model import ConfigModel
-
-
-def get_log_dir(application_name: str):
-	"""Gets the log directory.
-
-	Returns:
-	  The log directory.
-	"""
-
-	try:
-		user_config_dir = os.path.expanduser("~")
-	except Exception as e:
-		raise e
-
-	dir = os.path.join(user_config_dir, "AppData", "Local")
-	log_dir = os.path.join(dir, application_name, "logs")
-	return log_dir
 
 def get_config_dir(application_name: str):
 	"""Gets the configuration directory.
@@ -62,13 +45,12 @@ def get_config_file(application_name: str, logger: HoornLogger) -> Path:
 if __name__ == "__main__":
 	max_separator_length = 30
 
-	logger = HoornLogger(min_level=LogType.DEBUG, outputs=[
-		DefaultHoornLogOutput(max_separator_length=max_separator_length),
-		FileHoornLogOutput(
-			max_separator_length=max_separator_length,
-			log_directory=Path(get_log_dir("Project Forge")),
-		    max_logs_to_keep=5)
-	], max_separator_length=max_separator_length, separator_root="ProjectForge")
+	logger_builder: HoornLoggerBuilder = HoornLoggerBuilder(
+		application_name_sanitized="ProjectForge",
+		max_separator_length=max_separator_length,
+	)
+
+	logger: HoornLogger = logger_builder.build_console_output().get_logger(min_level=LogType.DEBUG)
 
 	config_file = get_config_file("Project Forge", logger)
 	content = config_file.read_text()

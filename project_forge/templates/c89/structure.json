@@ -1,0 +1,20 @@
+{
+  "folders": [
+    "src",
+    "include",
+    "include/${PROJECT_NAME}",
+    "tests",
+    "cmake",
+    "build"
+  ],
+  "files": [
+    { "source": "template/CMakeLists.txt",                   "destination": "CMakeLists.txt" },
+    { "source": "template/src_lib.c",                        "destination": "src/${PROJECT_NAME}.c" },
+    { "source": "template/src_main.c",                       "destination": "src/main.c" },
+    { "source": "template/include_lib.h",                    "destination": "include/${PROJECT_NAME}/${PROJECT_NAME}.h" },
+    { "source": "template/tests_entry.c",                    "destination": "tests/entry.c" },
+    { "source": "template/cmake_package_config.in",          "destination": "cmake/${PROJECT_NAME}-config.cmake.in" },
+    { "source": "template/cmake_package_config_version.in",  "destination": "cmake/${PROJECT_NAME}-config-version.cmake.in" },
+    { "source": "template/README.md",                        "destination": "README.md" }
+  ]
+}
