@@ -6,7 +6,8 @@
     "tests",
     "cmake",
     "build",
-    "toolchains"
+    "toolchains",
+    "external"
   ],
   "files": [
     { "source": "template/CMakeLists.txt",                   "destination": "CMakeLists.txt" },

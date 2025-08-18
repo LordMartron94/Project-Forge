@@ -1,0 +1,8 @@
+[
+  {
+    "name": "nexus",
+    "relative_path": "external/nexus",
+    "url": "https://github.com/LordMartron94/Nexus/tree/Development",
+    "optional": true
+  }
+]

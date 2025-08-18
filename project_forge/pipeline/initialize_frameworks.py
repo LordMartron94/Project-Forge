@@ -42,7 +42,7 @@ class InitializeFrameworks(IPipe):
             for option in chosen_options:
                 copy_to_root[option["rename"]] = template.joinpath(option["copy_to_root"])
                 submodules: List[Dict] = option["submodules"]
-                data.extra_submodules.extend(submodules)
+                data.framework_submodules.extend(submodules)
 
         for name, copy_to_root_file in copy_to_root.items():
             if copy_to_root_file.name.endswith(".json"):
