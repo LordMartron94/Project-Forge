@@ -61,7 +61,8 @@ class InitializeRepoStructure(IPipe):
             "${CMAKE_INSTALL_BINDIR}": "${CMAKE_INSTALL_BINDIR}",
             "${sourceDir}": "${sourceDir}",
             "${presetName}": "${presetName}",
-            "${LLVM_HOME}": "${LLVM_HOME}"
+            "${LLVM_HOME}": "${LLVM_HOME}",
+            "${${PROJECT_NAME}": "${${PROJECT_NAME}"
         }
 
     def _replace_variables(self, input_string: str) -> str:
