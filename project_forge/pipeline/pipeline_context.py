@@ -10,7 +10,6 @@ class PipelineContext(BaseModel):
     included_templates: List[Path]
     project_root_name: str
     project_root_name_sanitized: str
-    submodule_root_name: str
     multi_language: bool
     git_url: str
     framework_submodules: List[Dict] = []

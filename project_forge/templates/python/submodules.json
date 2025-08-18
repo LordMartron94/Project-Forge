@@ -1,12 +1,12 @@
 [
   {
     "name": "MD.Common.Python",
-    "relative_path": "md_common_python",
+    "relative_path": "${PROJECT_NAME}/components/md_common_python",
     "url": "https://github.com/LordMartron94/py-common"
   },
     {
       "name": "cli_bench",
-      "relative_path": "cli_bench",
+      "relative_path": "${PROJECT_NAME}/components/cli_bench",
       "url": "https://github.com/LordMartron94/CLI-Bench"
     }
 ]

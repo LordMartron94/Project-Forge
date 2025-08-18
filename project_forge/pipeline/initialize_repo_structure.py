@@ -1,12 +1,16 @@
 import json
-import re
+import shutil
 from pathlib import Path
 from typing import Dict, Any, List
 
 from project_forge.common.py_common.logging import HoornLogger
 from project_forge.common.py_common.patterns import IPipe
-from project_forge.constants import PROJECT_ROOT
+from project_forge.configure_repo import enforce_eol_policy
+from project_forge.constants import PROJECT_ROOT, INTERNAL_PATH
+from project_forge.get_keyword_mapping import get_variable_mapping
+from project_forge.git_commit_helper import commit_with_ps
 from project_forge.pipeline.pipeline_context import PipelineContext
+from project_forge.replace_variables import replace_variables
 
 
 class InitializeRepoStructure(IPipe):
@@ -25,6 +29,8 @@ class InitializeRepoStructure(IPipe):
         """
         self._logger.debug(f"Initializing project structure in: {data.repo_path}", separator="APP")
 
+        self._add_git_attributes_and_enforce_eol(data)
+
         self._build_keyword_mapping(data)
 
         final_structure = self._get_final_structure(data.included_templates)
@@ -35,6 +41,15 @@ class InitializeRepoStructure(IPipe):
         if data.multi_language:
             self._create_multi_language_files(data)
 
+        # Single consolidated commit (includes structure + any staged renormalized files)
+        commit_with_ps(
+            logger=self._logger,
+            repo_path=data.repo_path,
+            message="Project Forge: Stage 1 -- repository structure",
+            add=["."],
+            only_if_changes=True,
+        )
+
         self._logger.debug("Project structure initialized successfully.", separator="APP")
         return data
 
@@ -42,43 +57,7 @@ class InitializeRepoStructure(IPipe):
         """
         Builds the keyword mapping dictionary with all supported variables.
         """
-        version_parts = data.project_version.split('.')
-        self._keyword_mapping = {
-            "${PROJECT_NAME}": data.project_root_name_sanitized,
-            "${PROJECT_NAME_UPPER}": data.project_root_name_sanitized.upper(),
-            "${SANITIZED_NAME}": data.project_root_name_sanitized,
-            "${ROOT_FOLDER_NAME}": data.project_root_name,
-            "${GIT_URL}": data.git_url,
-            "${PROJECT_VERSION}": data.project_version,
-            "${PROJECT_VERSION_MAJOR}": version_parts[0] if len(version_parts) > 0 else "0",
-            "${PROJECT_VERSION_MINOR}": version_parts[1] if len(version_parts) > 1 else "0",
-            "${PROJECT_VERSION_PATCH}": version_parts[2] if len(version_parts) > 2 else "0",
-            "${CMAKE_CURRENT_SOURCE_DIR}": "${CMAKE_CURRENT_SOURCE_DIR}",
-            "${CMAKE_CURRENT_BINARY_DIR}": "${CMAKE_CURRENT_BINARY_DIR}",
-            "${CMAKE_CURRENT_LIST_DIR}": "${CMAKE_CURRENT_LIST_DIR}",
-            "${CMAKE_INSTALL_INCLUDEDIR}": "${CMAKE_INSTALL_INCLUDEDIR}",
-            "${CMAKE_INSTALL_LIBDIR}": "${CMAKE_INSTALL_LIBDIR}",
-            "${CMAKE_INSTALL_BINDIR}": "${CMAKE_INSTALL_BINDIR}",
-            "${sourceDir}": "${sourceDir}",
-            "${presetName}": "${presetName}",
-            "${LLVM_HOME}": "${LLVM_HOME}",
-            "${${PROJECT_NAME}": "${${PROJECT_NAME}"
-        }
-
-    def _replace_variables(self, input_string: str) -> str:
-        """
-        Replaces known variables in a string and warns about unsupported ones.
-        """
-        # Find all potential variables
-        potential_vars = re.findall(r"\$\{.*?}", input_string)
-        for var in potential_vars:
-            if var not in self._keyword_mapping:
-                self._logger.warning(f"Unsupported variable found: '{var}'", separator="APP")
-
-        # Replace known variables
-        for key, value in self._keyword_mapping.items():
-            input_string = input_string.replace(key, value)
-        return input_string
+        self._keyword_mapping = get_variable_mapping(data)
 
     def _get_final_structure(self, template_paths: List[Path]) -> Dict[str, Any]:
         """
@@ -109,7 +88,7 @@ class InitializeRepoStructure(IPipe):
         Creates the directory structure for the project.
         """
         for folder in folders:
-            processed_folder = self._replace_variables(folder)
+            processed_folder = replace_variables(folder, self._keyword_mapping, self._logger)
             (project_path / processed_folder).mkdir(parents=True, exist_ok=True)
 
     def _create_files(self, data: PipelineContext, files: List[Dict[str, str]]):
@@ -118,20 +97,21 @@ class InitializeRepoStructure(IPipe):
         """
         for file_info in files:
             source_path = Path(file_info["template_path"]).joinpath(file_info["source"])
-            destination_path_str = self._replace_variables(file_info["destination"])
+            destination_path_str = replace_variables(file_info["destination"], self._keyword_mapping, self._logger)
             destination_path = data.repo_path.joinpath(destination_path_str)
 
             if not source_path.is_file():
                 self._logger.warning(f"Template file not found at: {source_path}", separator="APP")
                 continue
 
-            with open(source_path, "r") as f:
+            with open(source_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
-            processed_content = self._replace_variables(content)
+            processed_content = replace_variables(content, self._keyword_mapping, self._logger)
 
             destination_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(destination_path, "w") as f:
+            # Write with LF newlines to avoid accidental CRLF (Git still normalizes on commit)
+            with open(destination_path, "w", encoding="utf-8", newline="\n") as f:
                 f.write(processed_content)
 
     def _create_multi_language_files(self, data: PipelineContext):
@@ -139,19 +119,19 @@ class InitializeRepoStructure(IPipe):
         Creates files specific to multi-language projects.
         """
         # Create requirements.txt
-        with open(data.project_path.joinpath("requirements.txt"), "w") as f:
+        with open(data.project_path.joinpath("requirements.txt"), "w", encoding="utf-8", newline="\n") as f:
             f.write("-r components/MD.Logging/requirements.txt\n")
 
         # Create launch_config.json
         default_config_path = PROJECT_ROOT.joinpath("_internal/default_launcher_config.json")
-        with open(default_config_path, "r") as f:
+        with open(default_config_path, "r", encoding="utf-8") as f:
             default_contents = f.read()
-        processed_contents = self._replace_variables(default_contents)
-        with open(data.repo_path.joinpath("launch_config.json"), "w") as f:
+        processed_contents = replace_variables(default_contents, self._keyword_mapping, self._logger)
+        with open(data.repo_path.joinpath("launch_config.json"), "w", encoding="utf-8", newline="\n") as f:
             f.write(processed_contents)
 
         # Create todo.txt
-        with open(data.repo_path.joinpath("todo.txt"), "w") as f:
+        with open(data.repo_path.joinpath("todo.txt"), "w", encoding="utf-8", newline="\n") as f:
             f.write(
                 "Delete this file when you have executed the following: "
                 "create a symlink between the venv folder and your project root folder.\n\n"
@@ -164,7 +144,7 @@ class InitializeRepoStructure(IPipe):
         Loads a structure configuration file and injects the template_path into file info.
         """
         if path.is_file():
-            with open(path, "r") as f:
+            with open(path, "r", encoding="utf-8") as f:
                 structure = json.load(f)
                 if "files" in structure:
                     for file_info in structure["files"]:
@@ -187,3 +167,20 @@ class InitializeRepoStructure(IPipe):
             else:
                 merged[key] = value
         return merged
+
+    def _add_git_attributes_and_enforce_eol(self, data: PipelineContext):
+        """
+        Copy .gitattributes and immediately enforce EOL policy:
+          - Set repo-local git config (autocrlf=input, eol=lf, safecrlf=true)
+          - Install pre-commit hook (respects .gitattributes via git check-attr)
+          - Renormalize to stage any needed changes (commit happens later)
+        """
+        output_path = data.repo_path / ".gitattributes"
+        shutil.copyfile(INTERNAL_PATH / "git_attributes.txt", output_path)
+
+        # Enforce EOL policy and install hook; stage normalization but don't commit yet.
+        enforce_eol_policy(
+            logger=self._logger,
+            repo_path=data.repo_path,
+            commit=False,
+        )

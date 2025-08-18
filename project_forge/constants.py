@@ -1,6 +1,9 @@
 from pathlib import Path
 
 PROJECT_ROOT: Path = Path(__file__).parent
+
+INTERNAL_PATH: Path = PROJECT_ROOT / "_internal"
+
 SCRIPTS_DIR = PROJECT_ROOT / "scripts"
 
 SUPPORTED_LANGUAGES = [

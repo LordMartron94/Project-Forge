@@ -14,7 +14,7 @@ class GitIgnoreAdd(IPipe):
 
         gitignore_path: Path = data.repo_path.joinpath(".gitignore")
 
-        with open(gitignore_path, "w") as gitignore_file:
+        with open(gitignore_path, "w", encoding="utf-8", newline="\n") as gitignore_file:
             for template_folder in data.included_templates:
                 gitignore_path = template_folder.joinpath("gitignore.txt")
 

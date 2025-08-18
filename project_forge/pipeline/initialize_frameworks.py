@@ -5,6 +5,7 @@ from typing import Dict, List
 from project_forge.common.py_common.logging import HoornLogger
 from project_forge.common.py_common.patterns import IPipe
 from project_forge.common.py_common.user_input.user_input_helper import UserInputHelper
+from project_forge.git_commit_helper import commit_with_ps
 from project_forge.pipeline.pipeline_context import PipelineContext
 
 
@@ -57,6 +58,14 @@ class InitializeFrameworks(IPipe):
                         f2.write(new_content)
 
         self._logger.trace("Done flowing pipe for framework add.")
+
+        commit_with_ps(
+            logger=self._logger,
+            repo_path=data.repo_path,
+            message="Project Forge: Stage 2 -- frameworks",
+            add=["."],
+            only_if_changes=True,
+        )
 
         return data
 

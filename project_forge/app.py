@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 
 from common.py_common.cli_framework import CommandLineInterface
 from common.py_common.logging import HoornLogger
@@ -107,6 +107,17 @@ class App:
 		language_templates = [root_template_dir.joinpath(lang) for lang in languages]
 		return [default_template] + language_templates
 
+	@staticmethod
+	def _validate_optional_choice(choice: str) -> Tuple[bool, str]:
+		if choice.lower() == "y":
+			return True, ""
+		if choice.lower() == "n":
+			return True, ""
+		if len(choice.lower().strip()) == 0 or choice.lower().strip() == "":
+			return True, ""
+
+		return False, f"Expected one of 'y'/'n', got: '{choice.lower()}'"
+
 	def _initialize_project(self):
 		project_path: Path = self._get_desired_project_from_user()
 
@@ -117,20 +128,36 @@ class App:
 		template_folders: List[Path] = self._get_template_folders(languages)
 		multi_language = len(languages) > 1
 
-		def __always_true(_: str):
-			return True, ""
-
-		git_url: str = self._user_input_handler.get_user_input(
-			"What is the URL of the git repository?",
+		git_url = f"https://github.com/LordMartron94/{project_path.name}"
+		choice: str = self._user_input_handler.get_user_input(
+			f"Is '{git_url}' the correct git URL? y/n [y]",
 			expected_response_type=str,
-			validator_func=__always_true
+			validator_func=self._validate_optional_choice
 		)
+
+		mapping = {
+			"y": True,
+			"n": False,
+			"": True
+		}
+
+		is_right_url: bool | None = mapping.get(choice, None)
+
+		if is_right_url is None:
+			self._logger.warning(f"This should not have happened, unknown choice: '{choice}'", separator="APP")
+			is_right_url = False
+
+		if not is_right_url:
+			git_url = self._user_input_handler.get_user_input(
+				"Enter the correct GIT URL.",
+				expected_response_type=str,
+				validator_func=lambda c: (True, "")
+			)
 
 		context: PipelineContext = PipelineContext(
 			repo_path=project_path,
 			project_path=project_path.joinpath(sanitized_name),
 			included_templates=template_folders,
-			submodule_root_name=f"{sanitized_name}/components/",
 			project_root_name=project_path.name,
 			project_root_name_sanitized=sanitized_name,
 			multi_language=multi_language,
