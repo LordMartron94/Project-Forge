@@ -20,6 +20,9 @@ include(GNUInstallDirs)
 # Choose how this library obtains its dependencies.
 option(${PROJECT_NAME}_USE_BUNDLED_SUBMODULES "Use submodules from external/*" ON)
 
+# --- Cache definitions that Projects depend on ---
+# set(NEXUS_DOUBLE_PRECISION ON CACHE BOOL "" FORCE)
+
 # Accumulate deps here; apply them after add_library()
 set(${PROJECT_NAME}_PUBLIC_DEPS  "")  # e.g. nexus::nexus
 set(${PROJECT_NAME}_PRIVATE_DEPS "")  # e.g. chaos::chaos
