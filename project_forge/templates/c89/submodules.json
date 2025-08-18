@@ -5,5 +5,12 @@
     "url": "https://github.com/LordMartron94/Nexus",
     "optional": true,
     "branch": "Development"
+  },
+  {
+    "name": "blaze",
+    "relative_path": "external/blaze",
+    "url": "https://github.com/LordMartron94/Blaze",
+    "optional": true,
+    "branch": "Development"
   }
 ]
