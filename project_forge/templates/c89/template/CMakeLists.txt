@@ -1,23 +1,54 @@
 cmake_minimum_required(VERSION 3.28)
 
-# --- Project meta (filled by your generator) ---
 project(${PROJECT_NAME}
   VERSION ${PROJECT_VERSION}
   DESCRIPTION "C library: ${PROJECT_NAME}"
   LANGUAGES C
 )
 
-# C standard
 set(CMAKE_C_STANDARD 90)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
-# Options
 option(${PROJECT_NAME}_BUILD_APP   "Build demo console app (src/main.c)" ON)
 option(${PROJECT_NAME}_BUILD_TESTS "Build tests in /tests"               ON)
 option(BUILD_SHARED_LIBS           "Build shared instead of static"      OFF)
 
 include(GNUInstallDirs)
+
+# -------------------- Dependencies (discovery + selection) --------------------
+# Choose how this library obtains its dependencies.
+option(${PROJECT_NAME}_USE_BUNDLED_SUBMODULES "Use submodules from external/*" ON)
+
+# Accumulate deps here; apply them after add_library()
+set(${PROJECT_NAME}_PUBLIC_DEPS  "")  # e.g. nexus::nexus
+set(${PROJECT_NAME}_PRIVATE_DEPS "")  # e.g. chaos::chaos
+
+if(${PROJECT_NAME}_USE_BUNDLED_SUBMODULES)
+  # Example: disable submodule demos/tests
+  # set(nexus_BUILD_APP   OFF CACHE BOOL "" FORCE)
+  # set(nexus_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+  # set(chaos_BUILD_APP   OFF CACHE BOOL "" FORCE)
+  # set(chaos_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+
+  # Bring sources into this build (order matters if they depend on each other)
+  # add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/nexus)
+  # add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/chaos)
+else()
+  # Use installed packages (or targets provided by a parent project)
+  # if(NOT TARGET nexus::nexus)
+  #   find_package(nexus CONFIG REQUIRED) # optionally: find_package(nexus 1.2 CONFIG REQUIRED)
+  # endif()
+  # if(NOT TARGET chaos::chaos)
+  #   find_package(chaos CONFIG REQUIRED)
+  # endif()
+endif()
+
+# Decide visibility (examples):
+# list(APPEND ${PROJECT_NAME}_PUBLIC_DEPS  nexus::nexus)  # appears in public headers
+# list(APPEND ${PROJECT_NAME}_PRIVATE_DEPS chaos::chaos)  # used only in .c files
+
+# ------------------------------------------------------------------------------
 
 # ---- Sources (recursively, exclude app entry from the lib) ----
 file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES CONFIGURE_DEPENDS
@@ -39,6 +70,13 @@ target_include_directories(${PROJECT_NAME}
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+
+# ---- Apply dependency link interfaces (MUST be after add_library) ----
+# Safe even if the lists are empty.
+target_link_libraries(${PROJECT_NAME}
+  PUBLIC  ${${PROJECT_NAME}_PUBLIC_DEPS}
+  PRIVATE ${${PROJECT_NAME}_PRIVATE_DEPS}
 )
 
 # (Optional) warnings on MSVC/clang-cl
@@ -71,7 +109,6 @@ install(TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
-
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 configure_package_config_file(
@@ -97,6 +134,7 @@ install(EXPORT ${PROJECT_NAME}Targets
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
+# Build-tree export for add_subdirectory() consumers
 export(EXPORT ${PROJECT_NAME}Targets
   NAMESPACE ${PROJECT_NAME}::
   FILE ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake

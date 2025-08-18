@@ -19,6 +19,7 @@
     { "source": "template/cmake_package_config_version.in",  "destination": "cmake/${PROJECT_NAME}-config-version.cmake.in" },
     { "source": "template/README.md",                        "destination": "README.md" },
     { "source": "template/clangcl-llvm.cmake",               "destination": "toolchains/clangcl-llvm.cmake" },
-    { "source": "template/CMakePresets.json",                "destination": "CMakePresets.json" }
+    { "source": "template/CMakePresets.json",                "destination": "CMakePresets.json" },
+    { "source": "template/developer_readme.md",                "destination": "Developer Readme.md" }
   ]
 }
