@@ -12,5 +12,12 @@
     "url": "https://github.com/LordMartron94/Blaze",
     "optional": true,
     "branch": "Development"
+  },
+  {
+    "name": "enigma",
+    "relative_path": "external/enigma",
+    "url": "https://github.com/LordMartron94/Enigma",
+    "optional": true,
+    "branch": "Development"
   }
 ]
